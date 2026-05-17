@@ -29,6 +29,8 @@ namespace DiyetProgrami
 
         private void mainmenu_Load(object sender, EventArgs e)
         {
+            progressBar1.Value = kullancicisession.SuBardak; // Session'daki su miktarını progress bar'a yansıt
+            label4.Text = $"Bugün {progressBar1.Value} bardak su içildi;";
             chart1.ChartAreas[0].AxisX.MajorGrid.LineColor = Color.LightGray; // Hafif çizgiler
             chart1.ChartAreas[0].AxisY.MajorGrid.LineColor = Color.LightGray;
             chart1.Series["Kilo"].MarkerStyle = MarkerStyle.Circle; // Veri noktalarına yuvarlak koy
@@ -147,28 +149,44 @@ namespace DiyetProgrami
 
         private void btnGuncelle_Click(object sender, EventArgs e)
         {
-            SqlConnection con = new SqlConnection(connection.connectionstring);
-            SqlCommand cmd = new SqlCommand("update Kullanicilar set AktiviteSeviyesi = @AktiviteSeviyesi, AktiviteKatsayisi = @aktivitekatsayi where KullaniciID = @KullaniciID", con);
-            cmd.Parameters.AddWithValue("@AktiviteSeviyesi", comboBox1.SelectedItem.ToString());
-            double aktiviteKatsayisi = hesaplamalar.aktiviteKatsayisiHesapla(comboBox1.SelectedItem.ToString());
-            cmd.Parameters.AddWithValue("@aktivitekatsayi", aktiviteKatsayisi);
-            cmd.Parameters.AddWithValue("@KullaniciID", kullancicisession.KullaniciID);
+            if (comboBox1.SelectedItem == null)
+            {
+                MessageBox.Show("Lütfen bir aktivite seviyesi seçin.");
+                return;
+            }
             try
             {
-                con.Open();
-                cmd.ExecuteNonQuery();
-                MessageBox.Show("Aktivite seviyeniz başarıyla güncellendi!");
-                // Güncellenen aktivite katsayısını kullancicisession'a da atayalım
-                kullancicisession.AktiviteKatsayisi = aktiviteKatsayisi;
-                bilgileriniz.Items[11] = "Aktivite Seviyeniz: " + comboBox1.SelectedItem.ToString(); // Bilgiler listesinde aktivite seviyesini güncelle
+                SqlConnection con = new SqlConnection(connection.connectionstring);
+                SqlCommand cmd = new SqlCommand("update Kullanicilar set AktiviteSeviyesi = @AktiviteSeviyesi, GunlukKaloriIhtiyaci = @GunlukKaloriIhtiyaci, AktiviteKatsayisi = @aktivitekatsayi where KullaniciID = @KullaniciID", con);
+                cmd.Parameters.AddWithValue("@AktiviteSeviyesi", comboBox1.SelectedItem.ToString());
+                double aktiviteKatsayisi = hesaplamalar.aktiviteKatsayisiHesapla(comboBox1.SelectedItem.ToString());
+                kullancicisession.GunlukKaloriHedefi = hesaplamalar.gunlukkalori(kullancicisession.Cinsiyet, kullancicisession.GuncelKilo, kullancicisession.Boy, kullancicisession.Yas, aktiviteKatsayisi, kullancicisession.amac);
+                cmd.Parameters.AddWithValue("@GunlukKaloriIhtiyaci", kullancicisession.GunlukKaloriHedefi);
+                cmd.Parameters.AddWithValue("@aktivitekatsayi", aktiviteKatsayisi);
+                cmd.Parameters.AddWithValue("@KullaniciID", kullancicisession.KullaniciID);
+                try
+                {
+                    MessageBox.Show("Aktivite seviyeniz güncelleniyor, lütfen bekleyiniz..." + "\n Günlük kalori ihtiyacınız hesaplanıyor... Günlük kalori ihtiyacınız: " + kullancicisession.GunlukKaloriHedefi);
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                    MessageBox.Show("Aktivite seviyeniz başarıyla güncellendi!");
+                    // Güncellenen aktivite katsayısını kullancicisession'a da atayalım
+                    kullancicisession.AktiviteKatsayisi = aktiviteKatsayisi;
+                    bilgileriniz.Items[11] = "Aktivite Seviyeniz: " + comboBox1.SelectedItem.ToString(); // Bilgiler listesinde aktivite seviyesini güncelle
+                    hesaplamalar.ProgressBarGuncelle(pbKalori, lblKaloriOzet); // Kalori ihtiyacını güncellemek için progress bar'ı da güncelleyelim
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Aktivite seviyeniz güncellenirken bir hata oluştu: " + ex.Message);
+                }
+                finally
+                {
+                    con.Close();
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Aktivite seviyeniz güncellenirken bir hata oluştu: " + ex.Message);
-            }
-            finally
-            {
-                con.Close();
             }
         }
 

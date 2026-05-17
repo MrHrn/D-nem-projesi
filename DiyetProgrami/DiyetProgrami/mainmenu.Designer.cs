@@ -178,9 +178,9 @@
             this.s.BackColor = System.Drawing.Color.White;
             this.s.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.s.ForeColor = System.Drawing.Color.Black;
-            this.s.Location = new System.Drawing.Point(572, 149);
+            this.s.Location = new System.Drawing.Point(699, 149);
             this.s.Name = "s";
-            this.s.Size = new System.Drawing.Size(168, 36);
+            this.s.Size = new System.Drawing.Size(76, 36);
             this.s.TabIndex = 10;
             this.s.Text = "SU İÇ";
             this.s.UseVisualStyleBackColor = false;
@@ -234,7 +234,7 @@
             this.btnGuncelle.ForeColor = System.Drawing.Color.Black;
             this.btnGuncelle.Location = new System.Drawing.Point(572, 61);
             this.btnGuncelle.Name = "btnGuncelle";
-            this.btnGuncelle.Size = new System.Drawing.Size(168, 36);
+            this.btnGuncelle.Size = new System.Drawing.Size(203, 36);
             this.btnGuncelle.TabIndex = 20;
             this.btnGuncelle.Text = "Aktiflik Güncelle";
             this.btnGuncelle.UseVisualStyleBackColor = false;

@@ -1,13 +1,13 @@
 -- =============================================
 -- 1. Veritabanı Kontrolü ve Seçimi
 -- =============================================
-IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'dbveritabani')
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'veritabanıadı')
 BEGIN
-    CREATE DATABASE [dbveritabani];
+    CREATE DATABASE [veritabanıadı];
 END
 GO
 
-USE [dbveritabani];
+USE [veritabanıadı];
 GO
 
 -- =============================================
