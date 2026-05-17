@@ -1,1 +1,0 @@
-# D-nem-projesi
