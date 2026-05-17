@@ -1,0 +1,208 @@
+-- =============================================
+-- 1. Veritabanı Kontrolü ve Seçimi
+-- =============================================
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'veritabanıadı')
+BEGIN
+    CREATE DATABASE [veritabanıadı];
+END
+GO
+
+USE [veritabanıadı];
+GO
+
+-- =============================================
+-- 2. Eski Tabloları Sil (İlişki sırasına göre tersten)
+-- =============================================
+DROP TABLE IF EXISTS [dbo].[KullaniciGelisimi];
+DROP TABLE IF EXISTS [dbo].[OgunDetaylari];
+DROP TABLE IF EXISTS [dbo].[Ogunler];
+DROP TABLE IF EXISTS [dbo].[Besinler];
+DROP TABLE IF EXISTS [dbo].[Kullanicilar];
+GO
+
+-- =============================================
+-- 3. Tabloları Yeniden Oluştur
+-- =============================================
+
+-- Kullanicilar Tablosu
+CREATE TABLE [dbo].[Kullanicilar] (
+    [KullaniciID]           INT           IDENTITY (1, 1) NOT NULL,
+    [Ad]                    NVARCHAR (50) NOT NULL,
+    [Soyad]                 NVARCHAR (50) NOT NULL,
+    [Cinsiyet]              BIT           NULL,
+    [DogumTarihi]           DATE          NULL,
+    [Boy]                   INT           NULL,
+    [GuncelKilo]            FLOAT (53)    NULL,
+    [HedefKilo]             FLOAT (53)    NULL,
+    [KayitTarihi]           DATETIME      DEFAULT (getdate()) NULL,
+    [VKI]                   FLOAT (53)    NULL,
+    [BMH]                   FLOAT (53)    NULL,
+    [GunlukKaloriIhtiyaci]  FLOAT (53)    NULL,
+    [Yas]                   AS            (datediff(year,[DogumTarihi],getdate())),
+    [AktiviteSeviyesi]      NVARCHAR (20) DEFAULT ('Hafif Hareketli') NULL,
+    [AktiviteKatsayisi]     FLOAT (53)    DEFAULT ((1.3)) NULL,
+    [SuBardak]              INT           DEFAULT ((0)) NOT NULL,
+    [SuSonGuncellemeTarihi] DATE          DEFAULT (CONVERT([date],getdate())) NOT NULL,
+    [Amac]                  NVARCHAR (50) DEFAULT ('Yag Yakmak / Kilo Vermek') NOT NULL,
+    PRIMARY KEY CLUSTERED ([KullaniciID] ASC)
+);
+GO
+
+-- KullaniciGelisimi Tablosu
+CREATE TABLE [dbo].[KullaniciGelisimi] (
+    [GelisimID]   INT        IDENTITY (1, 1) NOT NULL,
+    [KullaniciID] INT        NOT NULL,
+    [KayitTarihi] DATETIME   DEFAULT (getdate()) NULL,
+    [Kilo]        FLOAT (53) NOT NULL,
+    [VKI]         FLOAT (53) NULL,
+    [Boy]         INT        NULL,
+    [BelCevresi]  FLOAT (53) NULL,
+    PRIMARY KEY CLUSTERED ([GelisimID] ASC),
+    FOREIGN KEY ([KullaniciID]) REFERENCES [dbo].[Kullanicilar] ([KullaniciID]) ON DELETE CASCADE
+);
+GO
+
+-- Besinler Tablosu
+CREATE TABLE [dbo].[Besinler] (
+    [BesinID]      INT            IDENTITY (1, 1) NOT NULL,
+    [BesinAdi]     NVARCHAR (100) NOT NULL,
+    [Kalori]       FLOAT (53)     NOT NULL,
+    [Protein]      FLOAT (53)     NULL,
+    [Karbonhidrat] FLOAT (53)     NULL,
+    [Yag]          FLOAT (53)     NULL,
+    PRIMARY KEY CLUSTERED ([BesinID] ASC)
+);
+GO
+
+-- Ogunler Tablosu
+CREATE TABLE [dbo].[Ogunler] (
+    [OgunID]      INT           IDENTITY (1, 1) NOT NULL,
+    [KullaniciID] INT           NOT NULL,
+    [OgunAdi]     NVARCHAR (50) NULL,
+    [Tarih]       DATETIME      DEFAULT (getdate()) NULL,
+    PRIMARY KEY CLUSTERED ([OgunID] ASC),
+    FOREIGN KEY ([KullaniciID]) REFERENCES [dbo].[Kullanicilar] ([KullaniciID]) ON DELETE CASCADE
+);
+GO
+
+-- OgunDetaylari Tablosu
+CREATE TABLE [dbo].[OgunDetaylari] (
+    [DetayID]    INT        IDENTITY (1, 1) NOT NULL,
+    [OgunID]     INT        NOT NULL,
+    [BesinID]    INT        NOT NULL,
+    [MiktarGram] FLOAT (53) NOT NULL,
+    PRIMARY KEY CLUSTERED ([DetayID] ASC),
+    FOREIGN KEY ([OgunID]) REFERENCES [dbo].[Ogunler] ([OgunID]) ON DELETE CASCADE,
+    FOREIGN KEY ([BesinID]) REFERENCES [dbo].[Besinler] ([BesinID]) ON DELETE CASCADE
+);
+GO
+
+-- =============================================
+-- 4. Ekran Görüntülerindeki Canlı Veriler (INSERT)
+-- =============================================
+
+-- 4.1. Kullanicilar Verileri (Görsel 3)
+INSERT INTO [dbo].[Kullanicilar] ([Ad], [Soyad], [Cinsiyet], [DogumTarihi], [Boy], [GuncelKilo], [HedefKilo], [VKI], [BMH], [GunlukKaloriIhtiyaci], [AktiviteSeviyesi], [AktiviteKatsayisi], [Amac])
+VALUES 
+('Ahmet', 'Yılmaz', 1, '1990-05-15', 180, 76, 75, 23.46, 1769.04, 1622.63, 'Hafif Hareketli', 1.3, 'Yag Yakmak / Kilo Vermek'),
+('Ayşe', 'Kaya', 0, '1995-08-22', 165, 65, 58, 23.8751147842041, 1365.25, 1475.86, 'Hafif Hareketli', 1.3, 'Yag Yakmak / Kilo Vermek'),
+('Mehmet', 'Demir', 1, '1988-11-10', 175, 92, 80, 30.0408163265306, 1828.75, 2523.02, 'Hafif Hareketli', 1.3, 'Yag Yakmak / Kilo Vermek'),
+('Fatma', 'Çelik', 0, '1992-03-30', 160, 70, 55, 27.34375, 1369, 1253.83, 'Hafif Hareketli', 1.3, 'Yag Yakmak / Kilo Vermek'),
+('Can', 'Öztürk', 1, '2000-01-05', 185, 95, 88, 27.7574872169496, 1981.25, 2418.68, 'Hafif Hareketli', 1.3, 'Yag Yakmak / Kilo Vermek'),
+('Ece', 'Aydın', 0, '1998-07-12', 170, 60, 55, 20.7612456747405, 1361.5, 2589.3, 'Hafif Hareketli', 1.3, 'Yag Yakmak / Kilo Vermek'),
+('Mustafa', 'Arslan', 1, '1985-09-25', 178, 105, 90, 33.1397550814291, 1962.5, 3663.61, 'Hafif Hareketli', 1.3, 'Yag Yakmak / Kilo Vermek'),
+('Zeynep', 'Yıldız', 0, '1993-12-01', 163, 55, 55, 20.7008167413151, 1242.75, 1093.97, 'Hafif Hareketli', 1.3, 'Yag Yakmak / Kilo Vermek'),
+('Burak', 'Bulut', 1, '1991-04-18', 182, 88, 82, 26.5668397133999, 1847.5, 2182.1, 'Hafif Hareketli', 1.3, 'Yag Yakmak / Kilo Vermek'),
+('Selin', 'Güneş', 0, '1996-06-20', 168, 72, 62, 25.5102040816327, 1459, 1846.94, 'Hafif Hareketli', 1.3, 'Yag Yakmak / Kilo Vermek'),
+('Halil Can', 'Kaynarca', 1, '2005-02-09', 1, 80, 70, 261224.49, 1033.51, 735.58, 'Hafif Hareketli', 1.3, 'Yag Yakmak / Kilo Vermek');
+GO
+
+-- 4.2. KullaniciGelisimi Verileri (Görsel 2)
+INSERT INTO [dbo].[KullaniciGelisimi] ([KullaniciID], [KayitTarihi], [Kilo], [VKI], [Boy], [BelCevresi])
+VALUES 
+(2, '2026-05-14 09:55:00', 68, 25, 165, NULL),
+(3, '2026-05-14 09:55:00', 98, 32, 175, NULL),
+(4, '2026-05-14 09:55:00', 75, 29.3, 160, NULL),
+(5, '2026-05-14 09:55:00', 97, 28.3, 185, NULL),
+(1, '2026-05-14 23:11:00', 80, 24.69, 180, NULL),
+(1, '2026-05-14 23:12:00', 80, 24.69, 180, NULL),
+(1, '2026-05-14 23:13:00', 70, 21.6, 180, NULL),
+(1, '2026-05-14 23:14:00', 80, 24.69, 180, NULL),
+(1, '2026-05-14 23:15:00', 90, 27.78, 180, NULL),
+(1, '2026-05-14 23:20:00', 75, 23.15, 180, NULL),
+(1, '2026-05-14 23:25:00', 85, 26.23, 180, NULL),
+(1, '2026-05-14 23:30:00', 70, 21.6, 180, NULL),
+(1, '2026-05-14 23:35:00', 60, 18.52, 180, NULL),
+(1, '2026-05-15 07:40:00', 60, 18.52, 180, NULL),
+(1, '2026-05-15 07:42:00', 70, 21.6, 180, NULL),
+(1, '2026-05-15 07:43:00', 65, 20.06, 180, NULL),
+(1, '2026-05-15 07:44:00', 50, 15.43, 180, NULL),
+(1, '2026-05-15 07:45:00', 75, 23.15, 180, NULL),
+(1, '2026-05-15 08:20:00', 70, 21.6, 180, NULL),
+(1, '2026-05-15 08:30:00', 70, 21.6, 180, NULL),
+(1, '2026-05-15 08:32:00', 80, 24.69, 180, NULL),
+(1, '2026-05-15 08:35:00', 70, 21.6, 180, NULL),
+(1, '2026-05-15 08:40:00', 75, 23.15, 180, NULL),
+(1, '2026-05-15 08:42:00', 76, 23.46, 180, NULL);
+GO
+
+-- 4.3. Besinler Verileri (Görsel 1)
+INSERT INTO [dbo].[Besinler] ([BesinAdi], [Kalori], [Protein], [Karbonhidrat], [Yag])
+VALUES 
+('Yumurta', 155, 13, 1.1, 11),
+('Tavuk Göğsü', 165, 31, 0, 3.6),
+('Yulaf Ezmesi', 389, 16.9, 66, 6.9),
+('Zeytinyağı', 884, 0, 0, 100),
+('Beyaz Peynir', 250, 15, 2, 20),
+('Elma', 52, 0.3, 14, 0.2),
+('Badem', 579, 21, 22, 50),
+('Pirinç Pilavı', 130, 2.7, 28, 0.3),
+('Süzme Yoğurt', 59, 10, 3.6, 0.4),
+('Dana Bonfile', 250, 26, 0, 15);
+GO
+
+-- 4.4. Ogunler Verileri (Görsel 5)
+INSERT INTO [dbo].[Ogunler] ([KullaniciID], [OgunAdi], [Tarih])
+VALUES 
+(1, 'Kahvaltı', '2026-05-14 09:55:00'),
+(2, 'Öğle Yemeği', '2026-05-14 09:55:00'),
+(3, 'Akşam Yemeği', '2026-05-14 09:55:00'),
+(4, 'Kahvaltı', '2026-05-14 09:55:00'),
+(5, 'Ara Öğün', '2026-05-14 09:55:00'),
+(6, 'Öğle Yemeği', '2026-05-14 09:55:00'),
+(7, 'Akşam Yemeği', '2026-05-14 09:55:00'),
+(8, 'Kahvaltı', '2026-05-14 09:55:00'),
+(9, 'Öğle Yemeği', '2026-05-14 09:55:00'),
+(10, 'Akşam Yemeği', '2026-05-14 09:55:00'),
+(1, 'Kahvaltı', '2026-05-14 23:00:00'),
+(1, 'Öğle Yemeği', '2026-05-14 23:30:00'),
+(1, 'Öğle Yemeği', '2026-05-14 23:35:00'),
+(1, 'Kahvaltı', '2026-05-14 23:40:00'),
+(1, 'Öğle Yemeği', '2026-05-14 23:50:00'),
+(1, 'Kahvaltı', '2026-05-15 07:40:00'),
+(1, 'Kahvaltı', '2026-05-15 07:42:00'),
+(1, 'Kahvaltı', '2026-05-15 07:45:00');
+GO
+
+-- 4.5. OgunDetaylari Verileri (Görsel 4)
+INSERT INTO [dbo].[OgunDetaylari] ([OgunID], [BesinID], [MiktarGram])
+VALUES 
+(1, 1, 100),
+(1, 5, 30),
+(2, 2, 200),
+(3, 8, 150),
+(4, 3, 50),
+(5, 6, 120),
+(6, 9, 200),
+(7, 10, 180),
+(8, 1, 50),
+(9, 7, 25),
+(11, 9, 80),
+(12, 2, 100),
+(13, 3, 50),
+(14, 1, 22),
+(15, 2, 41),
+(16, 1, 200);
+GO
+
+PRINT 'Veritabanı, gelişim tablosu dahil tüm yapılar ve görüntülerdeki gerçek veriler başarıyla yüklendi!';
