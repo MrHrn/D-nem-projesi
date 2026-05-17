@@ -1,27 +1,22 @@
-﻿create database [dbveritabani]
-
+﻿-- 1. EĞER VERİTABANI VARSA ÖNCE BAĞLANTILARINI KES VE SİL (Temiz kurulum için)
+USE master;
 GO
-use [dbveritabani]
 
-CREATE TABLE [dbo].[Ogunler] (
-    [OgunID]      INT           IDENTITY (1, 1) NOT NULL,
-    [KullaniciID] INT           NOT NULL,
-    [OgunAdi]     NVARCHAR (50) NULL,
-    [Tarih]       DATETIME      DEFAULT (getdate()) NULL,
-    PRIMARY KEY CLUSTERED ([OgunID] ASC),
-    FOREIGN KEY ([KullaniciID]) REFERENCES [dbo].[Kullanicilar] ([KullaniciID])
-);
+IF EXISTS (SELECT name FROM sys.databases WHERE name = N'dbveritabani')
+BEGIN
+    ALTER DATABASE [dbveritabani] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE [dbveritabani];
+END
+GO
 
-CREATE TABLE [dbo].[OgunDetaylari] (
-    [DetayID]    INT        IDENTITY (1, 1) NOT NULL,
-    [OgunID]     INT        NOT NULL,
-    [BesinID]    INT        NOT NULL,
-    [MiktarGram] FLOAT (53) NOT NULL,
-    PRIMARY KEY CLUSTERED ([DetayID] ASC),
-    FOREIGN KEY ([OgunID]) REFERENCES [dbo].[Ogunler] ([OgunID]) ON DELETE CASCADE,
-    FOREIGN KEY ([BesinID]) REFERENCES [dbo].[Besinler] ([BesinID])
-);
+-- 2. VERİTABANINI YENİDEN OLUŞTUR VE SEÇ
+CREATE DATABASE [dbveritabani];
+GO
 
+USE [dbveritabani];
+GO
+
+-- 3. ANA TABLO 1: Kullanicilar (Kimseye bağımlı değil)
 CREATE TABLE [dbo].[Kullanicilar] (
     [KullaniciID]           INT           IDENTITY (1, 1) NOT NULL,
     [Ad]                    NVARCHAR (50) NOT NULL,
@@ -43,20 +38,9 @@ CREATE TABLE [dbo].[Kullanicilar] (
     [Amac]                  NVARCHAR (50) DEFAULT ('Yag Yakmak / Kilo Vermek') NOT NULL,
     PRIMARY KEY CLUSTERED ([KullaniciID] ASC)
 );
+GO
 
-
-CREATE TABLE [dbo].[KullaniciGelisimi] (
-    [GelisimID]   INT        IDENTITY (1, 1) NOT NULL,
-    [KullaniciID] INT        NOT NULL,
-    [KayitTarihi] DATETIME   DEFAULT (getdate()) NULL,
-    [Kilo]        FLOAT (53) NOT NULL,
-    [VKI]         FLOAT (53) NULL,
-    [Boy]         INT        NULL,
-    [BelCevresi]  FLOAT (53) NULL,
-    PRIMARY KEY CLUSTERED ([GelisimID] ASC),
-    FOREIGN KEY ([KullaniciID]) REFERENCES [dbo].[Kullanicilar] ([KullaniciID]) ON DELETE CASCADE
-);
-
+-- 4. ANA TABLO 2: Besinler (Kimseye bağımlı değil)
 CREATE TABLE [dbo].[Besinler] (
     [BesinID]      INT            IDENTITY (1, 1) NOT NULL,
     [BesinAdi]     NVARCHAR (100) NOT NULL,
@@ -66,4 +50,27 @@ CREATE TABLE [dbo].[Besinler] (
     [Yag]          FLOAT (53)     NULL,
     PRIMARY KEY CLUSTERED ([BesinID] ASC)
 );
+GO
 
+-- 5. BAĞLI TABLO 1: Ogunler (Kullanicilar tablosuna bağlı)
+CREATE TABLE [dbo].[Ogunler] (
+    [OgunID]      INT           IDENTITY (1, 1) NOT NULL,
+    [KullaniciID] INT           NOT NULL,
+    [OgunAdi]     NVARCHAR (50) NULL,
+    [Tarih]       DATETIME      DEFAULT (getdate()) NULL,
+    PRIMARY KEY CLUSTERED ([OgunID] ASC),
+    FOREIGN KEY ([KullaniciID]) REFERENCES [dbo].[Kullanicilar] ([KullaniciID]) ON DELETE CASCADE
+);
+GO
+
+-- 6. ARA/DETAY TABLO: OgunDetaylari (Hem Ogunler hem Besinler tablosuna bağlı)
+CREATE TABLE [dbo].[OgunDetaylari] (
+    [DetayID]    INT        IDENTITY (1, 1) NOT NULL,
+    [OgunID]     INT        NOT NULL,
+    [BesinID]    INT        NOT NULL,
+    [MiktarGram] FLOAT (53) NOT NULL,
+    PRIMARY KEY CLUSTERED ([DetayID] ASC),
+    FOREIGN KEY ([OgunID]) REFERENCES [dbo].[Ogunler] ([OgunID]) ON DELETE CASCADE,
+    FOREIGN KEY ([BesinID]) REFERENCES [dbo].[Besinler] ([BesinID]) ON DELETE CASCADE
+);
+GO
