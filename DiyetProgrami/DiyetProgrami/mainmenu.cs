@@ -30,7 +30,7 @@ namespace DiyetProgrami
         private void mainmenu_Load(object sender, EventArgs e)
         {
             progressBar1.Value = kullancicisession.SuBardak; // Session'daki su miktarını progress bar'a yansıt
-            label4.Text = $"Bugün {progressBar1.Value} bardak su içildi;";
+            label2.Text = $"Ne kadar su içtini: Bugün {progressBar1.Value} bardak su içildi;";
             chart1.ChartAreas[0].AxisX.MajorGrid.LineColor = Color.LightGray; // Hafif çizgiler
             chart1.ChartAreas[0].AxisY.MajorGrid.LineColor = Color.LightGray;
             chart1.Series["Kilo"].MarkerStyle = MarkerStyle.Circle; // Veri noktalarına yuvarlak koy
@@ -50,7 +50,7 @@ namespace DiyetProgrami
             bilgileriniz.Items.Add("Amacınız: " + kullancicisession.amac);
 
             hesaplamalar.BugunAlinanToplamKalori();
-            hesaplamalar.ProgressBarGuncelle(pbKalori, lblKaloriOzet);
+            hesaplamalar.ProgressBarGuncelle(pbKalori, label1);
         }
 
         private void kiloGüncelleBugünTartıldımButonuToolStripMenuItem_Click(object sender, EventArgs e)
@@ -67,7 +67,7 @@ namespace DiyetProgrami
                     kullancicisession.SuBardak += 1;
 
                     progressBar1.Value = kullancicisession.SuBardak;
-                    label4.Text = $"Bugün {progressBar1.Value} bardak su içildi.";
+                    label2.Text = $"Ne kadar su içtiniz: Bugün {progressBar1.Value} bardak su içildi.";
 
                     using (SqlConnection con = new SqlConnection(connection.connectionstring))
                     {
@@ -173,7 +173,7 @@ namespace DiyetProgrami
                     // Güncellenen aktivite katsayısını kullancicisession'a da atayalım
                     kullancicisession.AktiviteKatsayisi = aktiviteKatsayisi;
                     bilgileriniz.Items[11] = "Aktivite Seviyeniz: " + comboBox1.SelectedItem.ToString(); // Bilgiler listesinde aktivite seviyesini güncelle
-                    hesaplamalar.ProgressBarGuncelle(pbKalori, lblKaloriOzet); // Kalori ihtiyacını güncellemek için progress bar'ı da güncelleyelim
+                    hesaplamalar.ProgressBarGuncelle(pbKalori, label1); // Kalori ihtiyacını güncellemek için progress bar'ı da güncelleyelim
                 }
                 catch (Exception ex)
                 {
@@ -251,7 +251,7 @@ namespace DiyetProgrami
                 bilgileriniz.Items[9] = "Vücut Kitle İndeksiniz: " + kullancicisession.VKI.ToString("F2");
                 bilgileriniz.Items[10] = "Bazal Metabolizma Hızınız: " + kullancicisession.BMH.ToString("F2");
                 
-                hesaplamalar.ProgressBarGuncelle(pbKalori, lblKaloriOzet);
+                hesaplamalar.ProgressBarGuncelle(pbKalori, label1);
                 hesaplamalar.BugunAlinanToplamKalori();
                 hesaplamalar.GrafigiGuncelle(chart1);
 
@@ -263,6 +263,11 @@ namespace DiyetProgrami
                 if (con.State == ConnectionState.Open) con.Close();
                 MessageBox.Show("Hata oluştu: " + ex.Message);
             }
+        }
+
+        private void chart1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

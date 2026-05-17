@@ -156,7 +156,7 @@ namespace DiyetProgrami
             }
 
             // Bilgilendirme label'ların varsa onları da burada güncelleyebilirsin
-            lblKaloriOzet.Text = $"Alınan: {alinanKalori:N0} / Hedef: {hedefKalori:N0} kcal";
+            lblKaloriOzet.Text = $" Bugün aldığınız kalori: Alınan: {alinanKalori:N0} / Hedef: {hedefKalori:N0} kcal";
         }
         public static void GrafigiGuncelle(Chart chartGelisim)
         {

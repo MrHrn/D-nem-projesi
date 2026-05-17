@@ -128,7 +128,7 @@ namespace DiyetProgrami
                     // Her şey başarılıysa işlemleri onayla
                     tra.Commit();
                     MessageBox.Show("Öğün ve besin başarıyla kaydedildi!");
-                    hesaplamalar.ProgressBarGuncelle(((mainmenu)this.Owner).pbKalori, ((mainmenu)this.Owner).lblKaloriOzet);
+                    hesaplamalar.ProgressBarGuncelle(((mainmenu)this.Owner).pbKalori, ((mainmenu)this.Owner).label1);
                     
                     listele();
 
